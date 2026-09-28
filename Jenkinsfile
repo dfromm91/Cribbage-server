@@ -9,13 +9,64 @@ pipeline {
     PATH = "/Users/danny/Documents/Codex/2026-09-27/buil/work/.dotnet:${env.PATH}"
   }
   stages {
-    stage('Source') { steps { deleteDir(); sh 'curl --fail --location --silent --show-error https://github.com/dfromm91/Cribbage-server/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1' } }
-    stage('Restore') { steps { sh 'dotnet restore Cribbage.sln' } }
-    stage('Test') { steps { sh 'mkdir -p artifacts && dotnet test Cribbage.sln -c Release --no-restore --logger "junit;LogFilePath=../../artifacts/test-results.xml" --collect:"XPlat Code Coverage"' } post { always { junit allowEmptyResults: true, testResults: 'artifacts/test-results.xml'; archiveArtifacts allowEmptyArchive: true, artifacts: '**/coverage.cobertura.xml' } } }
-    stage('Deploy test') { when { branch 'main' } steps { withCredentials([string(credentialsId: 'render-test-api-deploy-hook', variable: 'TEST_API_HOOK'), string(credentialsId: 'render-test-web-deploy-hook', variable: 'TEST_WEB_HOOK')]) { sh 'curl --fail --silent --show-error --request POST "$TEST_API_HOOK"'; sh 'curl --fail --silent --show-error --request POST "$TEST_WEB_HOOK"' } } }
-    stage('Smoke test') { when { branch 'main' } steps { withCredentials([string(credentialsId: 'render-test-url', variable: 'TEST_URL')]) { sh '''for i in $(seq 1 30); do curl --fail --silent "$TEST_URL/health" && exit 0; sleep 10; done; exit 1''' } } }
-    stage('Approve production') { when { branch 'main' } steps { timeout(time: 1, unit: 'HOURS') { input message: 'Promote the verified build to production?', ok: 'Deploy' } } }
-    stage('Deploy production') { when { branch 'main' } steps { withCredentials([string(credentialsId: 'render-prod-api-deploy-hook', variable: 'PROD_API_HOOK'), string(credentialsId: 'render-prod-web-deploy-hook', variable: 'PROD_WEB_HOOK')]) { sh 'curl --fail --silent --show-error --request POST "$PROD_API_HOOK"'; sh 'curl --fail --silent --show-error --request POST "$PROD_WEB_HOOK"' } } }
+    stage('Source') {
+      steps {
+        deleteDir()
+        sh 'curl --fail --location --silent --show-error https://github.com/dfromm91/Cribbage-server/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1'
+      }
+    }
+    stage('Restore') {
+      steps { sh 'dotnet restore Cribbage.sln' }
+    }
+    stage('Test') {
+      steps { sh 'mkdir -p artifacts && dotnet test Cribbage.sln -c Release --no-restore --logger "junit;LogFilePath=../../artifacts/test-results.xml" --collect:"XPlat Code Coverage"' }
+      post {
+        always {
+          junit allowEmptyResults: true, testResults: 'artifacts/test-results.xml'
+          archiveArtifacts allowEmptyArchive: true, artifacts: '**/coverage.cobertura.xml'
+        }
+      }
+    }
+    stage('Deploy test') {
+      when { branch 'main' }
+      steps {
+        withCredentials([
+          string(credentialsId: 'render-test-api-deploy-hook', variable: 'TEST_API_HOOK'),
+          string(credentialsId: 'render-test-web-deploy-hook', variable: 'TEST_WEB_HOOK')
+        ]) {
+          sh 'curl --fail --silent --show-error --request POST "$TEST_API_HOOK"'
+          sh 'curl --fail --silent --show-error --request POST "$TEST_WEB_HOOK"'
+        }
+      }
+    }
+    stage('Smoke test') {
+      when { branch 'main' }
+      steps {
+        withCredentials([string(credentialsId: 'render-test-url', variable: 'TEST_URL')]) {
+          sh '''for i in $(seq 1 30); do curl --fail --silent "$TEST_URL/health" && exit 0; sleep 10; done; exit 1'''
+        }
+      }
+    }
+    stage('Approve production') {
+      when { branch 'main' }
+      steps {
+        timeout(time: 1, unit: 'HOURS') {
+          input message: 'Promote the verified build to production?', ok: 'Deploy'
+        }
+      }
+    }
+    stage('Deploy production') {
+      when { branch 'main' }
+      steps {
+        withCredentials([
+          string(credentialsId: 'render-prod-api-deploy-hook', variable: 'PROD_API_HOOK'),
+          string(credentialsId: 'render-prod-web-deploy-hook', variable: 'PROD_WEB_HOOK')
+        ]) {
+          sh 'curl --fail --silent --show-error --request POST "$PROD_API_HOOK"'
+          sh 'curl --fail --silent --show-error --request POST "$PROD_WEB_HOOK"'
+        }
+      }
+    }
   }
   post { always { deleteDir() } }
 }
