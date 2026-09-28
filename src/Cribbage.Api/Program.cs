@@ -33,7 +33,8 @@ static string NormalizeConnectionString(string value)
 {
     if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme is not ("postgres" or "postgresql")) return value;
     var credentials = uri.UserInfo.Split(':', 2).Select(Uri.UnescapeDataString).ToArray();
-    return $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={credentials[0]};Password={(credentials.Length > 1 ? credentials[1] : "")};SSL Mode=Require;Trust Server Certificate=true";
+    var port = uri.IsDefaultPort ? 5432 : uri.Port;
+    return $"Host={uri.Host};Port={port};Database={uri.AbsolutePath.TrimStart('/')};Username={credentials[0]};Password={(credentials.Length > 1 ? credentials[1] : "")};SSL Mode=Require;Trust Server Certificate=true";
 }
 
 public partial class Program { }
