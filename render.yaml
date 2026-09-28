@@ -3,10 +3,6 @@ databases:
     plan: free
     databaseName: cribbage_test
     user: cribbage
-  - name: cribbage-prod-db
-    plan: free
-    databaseName: cribbage_prod
-    user: cribbage
 
 services:
   - type: web
@@ -43,7 +39,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: ConnectionStrings__Cribbage
-        fromDatabase: { name: cribbage-prod-db, property: connectionString }
+        fromDatabase: { name: cribbage-test-db, property: connectionString }
   - type: web
     name: cribbage-prod-web
     runtime: docker
