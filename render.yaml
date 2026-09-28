@@ -1,0 +1,59 @@
+databases:
+  - name: cribbage-test-db
+    plan: basic-256mb
+    databaseName: cribbage_test
+    user: cribbage
+  - name: cribbage-prod-db
+    plan: basic-256mb
+    databaseName: cribbage_prod
+    user: cribbage
+
+services:
+  - type: web
+    name: cribbage-test-api
+    runtime: docker
+    dockerfilePath: ./src/Cribbage.Api/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: ConnectionStrings__Cribbage
+        fromDatabase: { name: cribbage-test-db, property: connectionString }
+  - type: web
+    name: cribbage-test-web
+    runtime: docker
+    dockerfilePath: ./src/Cribbage.Web/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: API_HOST
+        fromService: { type: web, name: cribbage-test-api, property: host }
+      - key: API_PORT
+        value: "8080"
+  - type: web
+    name: cribbage-prod-api
+    runtime: docker
+    dockerfilePath: ./src/Cribbage.Api/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: ConnectionStrings__Cribbage
+        fromDatabase: { name: cribbage-prod-db, property: connectionString }
+  - type: web
+    name: cribbage-prod-web
+    runtime: docker
+    dockerfilePath: ./src/Cribbage.Web/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: API_HOST
+        fromService: { type: web, name: cribbage-prod-api, property: host }
+      - key: API_PORT
+        value: "8080"

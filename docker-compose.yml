@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cribbage
+      POSTGRES_USER: cribbage
+      POSTGRES_PASSWORD: cribbage
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cribbage"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+  api:
+    build:
+      context: .
+      dockerfile: src/Cribbage.Api/Dockerfile
+    environment:
+      ConnectionStrings__Cribbage: Host=postgres;Port=5432;Database=cribbage;Username=cribbage;Password=cribbage
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  web:
+    build:
+      context: .
+      dockerfile: src/Cribbage.Web/Dockerfile
+    environment:
+      API_HOST: api
+      API_PORT: 8080
+      PORT: 8080
+    depends_on: [api]
+    ports: ["3000:8080"]
+volumes:
+  postgres-data:
