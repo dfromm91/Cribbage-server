@@ -19,6 +19,7 @@ var app = builder.Build();
 app.UseSwagger(); app.UseSwaggerUI();
 app.UseCors();
 app.MapControllers(); app.MapHealthChecks("/health");
+app.MapGet("/api/version", () => Results.Ok(new { commit = Environment.GetEnvironmentVariable("RENDER_GIT_COMMIT") ?? "local" }));
 await ApplyMigrations(app.Services);
 app.Run();
 
