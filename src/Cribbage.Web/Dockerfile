@@ -9,5 +9,5 @@ RUN dotnet publish src/Cribbage.Web/Cribbage.Web.csproj -c Release -o /app --no-
 FROM nginx:1.27-alpine
 COPY src/Cribbage.Web/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/wwwroot /usr/share/nginx/html
-ENV API_HOST=api API_PORT=8080 PORT=8080
+ENV API_SCHEME=http API_HOST=api API_PORT=8080 PORT=8080
 EXPOSE 8080
