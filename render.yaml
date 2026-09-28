@@ -26,9 +26,11 @@ services:
     healthCheckPath: /health
     envVars:
       - key: API_HOST
-        fromService: { type: web, name: cribbage-test-api, property: host }
+        value: cribbage-test-api.onrender.com
+      - key: API_SCHEME
+        value: https
       - key: API_PORT
-        value: "8080"
+        value: "443"
   - type: web
     name: cribbage-prod-api
     runtime: docker
@@ -50,6 +52,8 @@ services:
     healthCheckPath: /health
     envVars:
       - key: API_HOST
-        fromService: { type: web, name: cribbage-prod-api, property: host }
+        value: cribbage-prod-api.onrender.com
+      - key: API_SCHEME
+        value: https
       - key: API_PORT
-        value: "8080"
+        value: "443"
