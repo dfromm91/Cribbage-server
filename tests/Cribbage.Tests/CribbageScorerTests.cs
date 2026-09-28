@@ -1,5 +1,6 @@
 using Cribbage.Api.Domain;
 using Cribbage.Api.Services;
+using Xunit;
 
 namespace Cribbage.Tests;
 
