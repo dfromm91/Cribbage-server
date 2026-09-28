@@ -1,0 +1,16 @@
+@page "/"
+@inject HttpClient Http
+<PageTitle>Cribbage scorer</PageTitle>
+<section class="hero"><p class="eyebrow">HAND COUNTER</p><h1>Score the hand.<br/><em>Settle the argument.</em></h1><p>Enter four cards and the starter using compact notation—5H, JD, AS.</p></section>
+<section class="panel">
+  <EditForm Model="model" OnValidSubmit="Score"><div class="card-grid">@for (var i = 0; i < 4; i++) { var index = i; <label>Card @(i + 1)<InputText @bind-Value="model.Hand[index]" placeholder="5H" /></label> }<label>Starter<InputText @bind-Value="model.Starter" placeholder="JC" /></label></div><label class="check"><InputCheckbox @bind-Value="model.IsCrib" /> This is the crib</label><button type="submit" disabled="@loading">@(loading ? "Counting…" : "Count the hand")</button></EditForm>
+  @if (error is not null) { <p class="error">@error</p> }
+  @if (result is not null) { <div class="score"><div><span>Total</span><strong>@result.Total</strong></div><dl><dt>Fifteens</dt><dd>@result.Breakdown.Fifteens</dd><dt>Pairs</dt><dd>@result.Breakdown.Pairs</dd><dt>Runs</dt><dd>@result.Breakdown.Runs</dd><dt>Flush</dt><dd>@result.Breakdown.Flush</dd><dt>Nobs</dt><dd>@result.Breakdown.Nobs</dd></dl></div> }
+</section>
+@code {
+  private ScoreModel model = new(); private ScoreResult? result; private string? error; private bool loading;
+  private async Task Score() { loading = true; error = null; result = null; try { var response = await Http.PostAsJsonAsync("api/score", model); if (response.IsSuccessStatusCode) result = await response.Content.ReadFromJsonAsync<ScoreResult>(); else error = "Check the card notation and make sure every card is unique."; } catch { error = "The scoring service is unavailable."; } finally { loading = false; } }
+  private sealed class ScoreModel { public string[] Hand { get; set; } = ["", "", "", ""]; public string Starter { get; set; } = ""; public bool IsCrib { get; set; } }
+  private sealed record Breakdown(int Fifteens, int Pairs, int Runs, int Flush, int Nobs);
+  private sealed record ScoreResult(int Total, Breakdown Breakdown);
+}

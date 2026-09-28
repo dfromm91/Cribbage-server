@@ -1,0 +1,17 @@
+@page "/games"
+@inject HttpClient Http
+<PageTitle>Game log</PageTitle>
+<section class="hero compact"><p class="eyebrow">THE BOARD</p><h1>Game log</h1><p>Record finished games and find every hard-fought result.</p></section>
+<section class="split">
+ <div class="panel"><h2>Add a game</h2><EditForm Model="game" OnValidSubmit="Save"><label>Player one<InputText @bind-Value="game.PlayerOne" /></label><label>Score<InputNumber @bind-Value="game.PlayerOneScore" /></label><label>Player two<InputText @bind-Value="game.PlayerTwo" /></label><label>Score<InputNumber @bind-Value="game.PlayerTwoScore" /></label><label>Notes<InputTextArea @bind-Value="game.Notes" /></label><button type="submit">Save result</button></EditForm></div>
+ <div><div class="search"><input @bind="search" placeholder="Find a player" /><button @onclick="Load">Search</button></div>@if (games is null) { <p>Loading games…</p> } else if (games.Count == 0) { <p class="empty">No games on the board yet.</p> } else { @foreach (var item in games) { <article class="game"><time>@item.PlayedAt.ToLocalTime().ToString("MMM d, yyyy")</time><h3>@item.PlayerOne <b>@item.PlayerOneScore</b> <span>—</span> <b>@item.PlayerTwoScore</b> @item.PlayerTwo</h3><p>Winner: @item.Winner</p></article> } }</div>
+</section>
+@code {
+ private NewGame game = new(); private List<Game>? games; private string search = "";
+ protected override async Task OnInitializedAsync() => await Load();
+ private async Task Load() { var result = await Http.GetFromJsonAsync<Page>($"api/games?player={Uri.EscapeDataString(search)}"); games = result?.Items ?? []; }
+ private async Task Save() { var response = await Http.PostAsJsonAsync("api/games", game); if (response.IsSuccessStatusCode) { game = new(); await Load(); } }
+ private sealed class NewGame { public string PlayerOne { get; set; } = ""; public string PlayerTwo { get; set; } = ""; public int PlayerOneScore { get; set; } = 121; public int PlayerTwoScore { get; set; } public string? Notes { get; set; } }
+ private sealed record Game(Guid Id, string PlayerOne, string PlayerTwo, int PlayerOneScore, int PlayerTwoScore, string Winner, DateTimeOffset PlayedAt, string? Notes);
+ private sealed record Page(List<Game> Items, int Total);
+}
