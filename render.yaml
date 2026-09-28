@@ -1,10 +1,10 @@
 databases:
   - name: cribbage-test-db
-    plan: basic-256mb
+    plan: free
     databaseName: cribbage_test
     user: cribbage
   - name: cribbage-prod-db
-    plan: basic-256mb
+    plan: free
     databaseName: cribbage_prod
     user: cribbage
 
@@ -14,7 +14,7 @@ services:
     runtime: docker
     dockerfilePath: ./src/Cribbage.Api/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     autoDeploy: false
     healthCheckPath: /health
     envVars:
@@ -25,7 +25,7 @@ services:
     runtime: docker
     dockerfilePath: ./src/Cribbage.Web/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     autoDeploy: false
     healthCheckPath: /health
     envVars:
@@ -38,7 +38,7 @@ services:
     runtime: docker
     dockerfilePath: ./src/Cribbage.Api/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     autoDeploy: false
     healthCheckPath: /health
     envVars:
@@ -49,7 +49,7 @@ services:
     runtime: docker
     dockerfilePath: ./src/Cribbage.Web/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     autoDeploy: false
     healthCheckPath: /health
     envVars:
